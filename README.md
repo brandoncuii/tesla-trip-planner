@@ -20,8 +20,3 @@ A web application for planning road trips with Tesla Supercharger stops and near
 - [ ] Supercharger location data
 - [ ] Route planning functionality
 - [ ] Food recommendations
-
-## Getting Started
-```bash
-npm install
-npm start
