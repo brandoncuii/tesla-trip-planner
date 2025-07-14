@@ -1,4 +1,5 @@
 import './App.css';
+import MapComponent from './MapComponent';
 
 function App() {
   return (
@@ -8,6 +9,10 @@ function App() {
         <p>Plan your road trip with supercharger stops and food!</p>
         <p>Created by Brandon Cui</p>
       </header>
+      <main style={{ padding: '20px' }}>
+        <h2>Map View</h2>
+        <MapComponent />
+      </main>
     </div>
   );
 }
