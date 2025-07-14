@@ -2,8 +2,7 @@ import React from 'react';
 import { APIProvider, Map } from '@vis.gl/react-google-maps';
 
 const MapComponent = () => {
-  const apiKey = "AIzaSyDLN8iuLnZS36foGYMaRSIe5h3QZp2F1EE";
-  
+  const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
   const paloAlto = { lat: 37.4419, lng: -122.1430 };
 
   return (
