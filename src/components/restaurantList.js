@@ -1,6 +1,6 @@
 import React from 'react';
 
-const RestaurantList = ({ restaurants, loading }) => {
+const RestaurantList = ({ restaurants, loading, hasSearched }) => {
     if (loading) {
         return (
             <div style={{ marginTop: '15px', color: '#666', fontSize: '14px' }}>
@@ -9,8 +9,28 @@ const RestaurantList = ({ restaurants, loading }) => {
         );
     }
 
-    if (restaurants.length === 0) {
+    if (!hasSearched) {
         return null;
+    }
+    
+    if (hasSearched && restaurants.length === 0) {
+        return (
+            <div style={{ marginTop: '15px' }}>
+                <h4 style={{ margin: '0 0 8px 0', color: '#333' }}>
+                    Nearby Restaurants:
+                </h4>
+                <div style={{ 
+                    padding: '10px', 
+                    backgroundColor: '#f9f9f9', 
+                    borderRadius: '4px',
+                    color: '#666',
+                    fontSize: '14px',
+                    fontStyle: 'italic'
+                }}>
+                    No restaurants found within walking distance. Try a different charging station!
+                </div>
+            </div>
+        );
     }
 
     return (

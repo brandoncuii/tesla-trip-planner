@@ -16,7 +16,7 @@ A web application for planning road trips with Tesla Supercharger stops and near
 
 ## Development Progress
 - [x] Project setup and basic React app
-- [ ] Google Maps integration
-- [ ] Supercharger location data
+- [x] Google Maps integration
+- [x] Supercharger location data
 - [ ] Route planning functionality
-- [ ] Food recommendations
+- [x] Food recommendations

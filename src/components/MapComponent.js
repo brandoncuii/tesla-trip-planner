@@ -1,5 +1,3 @@
-// src/MapComponent.js
-
 import React, { useState } from 'react';
 import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps';
 import SuperchargerInfoWindow from './superchargerInfoWindow';
@@ -7,7 +5,7 @@ import { useSuperchargers } from '../hooks/useSuperchargers';
 
 const MapComponent = () => {
     const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
-    const paloAlto = { lat: 37.4419, lng: -122.1430 };
+    const mapCenter = { lat: 36.7783, lng: -119.4179 }; // California center
 
     const { superchargers, loading } = useSuperchargers();
     const [selectedMarker, setSelectedMarker] = useState(null);
@@ -39,8 +37,8 @@ const MapComponent = () => {
         <div style={{ height: '100%', width: '100%' }}>
             <APIProvider apiKey={apiKey} libraries={['places']}>
                 <Map
-                    defaultCenter={paloAlto}
-                    defaultZoom={10}
+                    defaultCenter={mapCenter}
+                    defaultZoom={6}
                     mapId="tesla-trip-planner"
                     style={{ width: '100%', height: '100%' }}
                 >

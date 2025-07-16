@@ -1,7 +1,5 @@
-// src/hooks/useSuperchargers.js
-
 import { useState, useEffect } from 'react';
-import { fetchSuperchargers } from '../services/placesAPI';
+import { fetchSuperchargersFromFile } from '../services/placesAPI';
 
 export const useSuperchargers = () => {
     const [superchargers, setSuperchargers] = useState([]);
@@ -14,7 +12,7 @@ export const useSuperchargers = () => {
             setError(null);
 
             try {
-                const data = await fetchSuperchargers();
+                const data = await fetchSuperchargersFromFile();
                 setSuperchargers(data);
             } catch (err) {
                 console.error('Error in useSuperchargers:', err);

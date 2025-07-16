@@ -1,73 +1,36 @@
 const API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
 const BASE_URL = 'https://places.googleapis.com/v1/places:searchNearby';
 
-export const fetchSuperchargers = async () => {
+export const fetchSuperchargersFromFile = async () => {
     try {
-        const response = await fetch(BASE_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Goog-Api-Key': API_KEY,
-                'X-Goog-FieldMask':
-                    'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.primaryTypeDisplayName'
-            },
-            body: JSON.stringify({
-                includedTypes: ['electric_vehicle_charging_station'],
-                maxResultCount: 20,
-                locationRestriction: {
-                    circle: {
-                        center: { latitude: 37.4419, longitude: -122.1430 },
-                        radius: 50000
-                    }
-                }
-            })
-        });
-
-        if (!response.ok) {
-            console.error('API Response:', response.status, response.statusText);
-            throw new Error(`Google Places API error: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        console.log('Raw API response:', data);
+        console.log('📁 Loading superchargers from local file...');
         
-        if (!data.places || data.places.length === 0) {
-            console.warn('No EV stations found in this area.');
-            return [];
-        }
-
-        // Simplified filtering - only exclude obvious dealerships
-        const filteredPlaces = data.places.filter(place => {
-            const name = place.displayName?.text?.toLowerCase() || '';
-            
-            // Only exclude obvious car dealerships
-            const isCarDealership = 
-                name.includes('volvo') && name.includes('cars') ||
-                name.includes('bmw') && name.includes('dealership') ||
-                name.includes('mercedes') && name.includes('dealership') ||
-                name.includes('honda') && name.includes('dealership') ||
-                name.includes('toyota') && name.includes('dealership');
-            
-            return !isCarDealership;
-        });
-
-        console.log('Filtered places:', filteredPlaces.length);
-
-        return filteredPlaces.map((place) => ({
-            id: place.id,
-            name: place.displayName?.text || 'Unknown Charging Station',
-            position: {
-                lat: place.location.latitude,
-                lng: place.location.longitude
+        const response = await fetch('/superchargers.json');
+        const allSites = await response.json();
+        
+        console.log('📁 Total sites loaded:', allSites.length);
+        
+        // Filter for California and open sites
+        const californiaSites = allSites.filter(site => 
+            site.address?.state === 'CA' && site.status === 'OPEN'
+        );
+        
+        console.log('📁 California sites found:', californiaSites.length);
+        
+        return californiaSites.map(site => ({
+            id: site.id,
+            name: `Tesla Supercharger - ${site.name}`,
+            position: { 
+                lat: parseFloat(site.gps.latitude), 
+                lng: parseFloat(site.gps.longitude) 
             },
-            address: place.formattedAddress || 'Address not available',
-            stalls: 'Multiple',
-            power: '250kW',
-            status: 'Check Status',
-            rating: place.rating || 'N/A'
+            stalls: site.stallCount || 'Multiple',
+            power: site.powerKilowatt ? `${site.powerKilowatt}kW` : '250kW',
+            status: 'Available',
+            address: `${site.address?.street || ''}, ${site.address?.city || site.name}, CA`
         }));
     } catch (error) {
-        console.error('Error fetching superchargers:', error);
+        console.error('Error loading supercharger file:', error);
         return [];
     }
 };

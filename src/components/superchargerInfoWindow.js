@@ -6,15 +6,17 @@ import { fetchNearbyRestaurants } from '../services/placesAPI';
 const SuperchargerInfoWindow = ({ supercharger, onClose }) => {
     const [restaurants, setRestaurants] = useState([]);
     const [loadingFood, setLoadingFood] = useState(false);
+    const [hasSearched, setHasSearched] = useState(false);
 
-    // Clear restaurants when supercharger changes
     useEffect(() => {
         setRestaurants([]);
+        setHasSearched(false);
     }, [supercharger.id]);
 
     const handleFindFood = async () => {
         setLoadingFood(true);
         setRestaurants([]);
+        setHasSearched(true);
         
         try {
             const results = await fetchNearbyRestaurants(supercharger);
@@ -62,7 +64,11 @@ const SuperchargerInfoWindow = ({ supercharger, onClose }) => {
                     {loadingFood ? 'Finding Food...' : '🍕 Find Food Nearby'}
                 </button>
 
-                <RestaurantList restaurants={restaurants} loading={loadingFood} />
+                <RestaurantList 
+                    restaurants={restaurants} 
+                    loading={loadingFood} 
+                    hasSearched={hasSearched}
+                />
             </div>
         </InfoWindow>
     );
