@@ -5,41 +5,32 @@ const MapComponent = () => {
     const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
     const paloAlto = { lat: 37.4419, lng: -122.1430 };
 
-    const [selectedMarker, setSelectedMarker] = useState(null); // sets initial selected marker to none
-
+    const [selectedMarker, setSelectedMarker] = useState(null);
     const [superchargers, setSuperchargers] = useState([]);
     const [loadingSuperchargers, setLoadingSuperchargers] = useState(true);
-    
-    const [restaurants, setRestaurants] = useState([]); // useState for nearby restraurant data
+    const [restaurants, setRestaurants] = useState([]);
     const [loadingFood, setLoadingFood] = useState(false);
 
-    // helper function to load Google Maps Places API dynamically
     const loadGoogleMapsPlaces = () => {
         return new Promise((resolve, reject) => {
-            // Check if Places API is already loaded
             if (window.google && window.google.maps && window.google.maps.places) {
                 resolve();
                 return;
             }
-    
+
             if (window.google && window.google.maps) {
-                const script = document.createElement('script');
-                script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-                script.async = true;
-                script.defer = true;
-                
-                script.onload = () => {
-                    setTimeout(() => {
-                        if (window.google && window.google.maps && window.google.maps.places) {
-                            resolve();
-                        } else {
-                            reject(new Error('Places library failed to load'));
-                        }
-                    }, 100);
+                let attempts = 0;
+                const checkForPlaces = () => {
+                    attempts++;
+                    if (window.google.maps.places) {
+                        resolve();
+                    } else if (attempts < 50) {
+                        setTimeout(checkForPlaces, 100);
+                    } else {
+                        reject(new Error('Places API not available'));
+                    }
                 };
-                
-                script.onerror = () => reject(new Error('Failed to load Places library'));
-                document.head.appendChild(script);
+                checkForPlaces();
             } else {
                 reject(new Error('Google Maps not loaded'));
             }
@@ -48,45 +39,53 @@ const MapComponent = () => {
 
     const fetchRealSuperchargers = async () => {
         try {
-            console.log("Fetching real Tesla Superchargers...");
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Timeout after 10 seconds')), 10000)
+            );
             
-            // Load Places API
-            await loadGoogleMapsPlaces();
+            await Promise.race([loadGoogleMapsPlaces(), timeoutPromise]);
             
             const service = new window.google.maps.places.PlacesService(document.createElement('div'));
             
             return new Promise((resolve) => {
                 service.textSearch({
                     query: 'Tesla Supercharger',
-                    location: new window.google.maps.LatLng(37.4419, -122.1430), // Bay Area center
-                    radius: 50000 // 50km radius
+                    location: new window.google.maps.LatLng(37.4419, -122.1430),
+                    radius: 50000
                 }, (results, status) => {
-                    console.log("Supercharger search status:", status);
-                    console.log("Supercharger results:", results);
-                    
                     if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-                        const superchargers = results.map((place, index) => ({
-                            id: place.place_id || index + 1, // Use place_id for unique IDs
-                            name: place.name,
-                            position: {
-                                lat: place.geometry.location.lat(),
-                                lng: place.geometry.location.lng()
-                            },
-                            stalls: 'Multiple', // Places API doesn't have exact count
-                            power: '250kW', // Assume modern superchargers
-                            status: place.business_status === 'OPERATIONAL' ? 'Available' : 'Check Status',
-                            rating: place.rating || 'N/A',
-                            address: place.formatted_address || 'Address not available'
-                        }));
+                        const superchargers = results.map((place, index) => {
+                            // Better name logic - use the full place name or create a descriptive one
+                            let name = place.name;
+                            if (!name || name === "Tesla Supercharger") {
+                                // Extract location from address
+                                const location = place.vicinity || 
+                                               (place.formatted_address ? place.formatted_address.split(',')[0] : null) ||
+                                               "Unknown Location";
+                                name = `Tesla Supercharger - ${location}`;
+                            }
+                            
+                            return {
+                                id: place.place_id || index + 1,
+                                name: name,
+                                position: {
+                                    lat: place.geometry.location.lat(),
+                                    lng: place.geometry.location.lng()
+                                },
+                                stalls: 'Multiple',
+                                power: '250kW',
+                                status: place.business_status === 'OPERATIONAL' ? 'Available' : 'Check Status',
+                                rating: place.rating || 'N/A',
+                                address: place.formatted_address || 'Address not available'
+                            };
+                        });
                         resolve(superchargers);
                     } else {
-                        console.error('Places search failed:', status);
-                        resolve([]); // Return empty array on failure
+                        resolve([]);
                     }
                 });
             });
         } catch (error) {
-            console.error('Error fetching real superchargers:', error);
             return [];
         }
     };
@@ -95,8 +94,29 @@ const MapComponent = () => {
         const loadSuperchargers = async () => {
             setLoadingSuperchargers(true);
             
-            const realSuperchargers = await fetchRealSuperchargers();
-            setSuperchargers(realSuperchargers); // Use real data or empty array
+            try {
+                const realSuperchargers = await fetchRealSuperchargers();
+                setSuperchargers(realSuperchargers);
+            } catch (error) {
+                setSuperchargers([
+                    {
+                        id: 1,
+                        name: "Tesla Supercharger - Palo Alto University Ave",
+                        position: { lat: 37.4488, lng: -122.1599 },
+                        stalls: 8,
+                        power: "250kW",
+                        status: "Available"
+                    },
+                    {
+                        id: 2,
+                        name: "Tesla Supercharger - Mountain View Whisman",
+                        position: { lat: 37.3983, lng: -122.0817 },
+                        stalls: 8,
+                        power: "250kW",
+                        status: "Available"
+                    }
+                ]);
+            }
             
             setLoadingSuperchargers(false);
         };
@@ -109,12 +129,7 @@ const MapComponent = () => {
         setRestaurants([]);
         
         try {
-            console.log("Searching for food near:", supercharger.name);
-            
-            // Load Places API dynamically
             await loadGoogleMapsPlaces();
-            
-            console.log("Places API loaded successfully");
             
             const service = new window.google.maps.places.PlacesService(document.createElement('div'));
             
@@ -128,42 +143,39 @@ const MapComponent = () => {
             };
             
             service.nearbySearch(request, (results, status) => {
-                console.log("Places API status:", status);
-                console.log("Places API results:", results);
-                
                 if (status === window.google.maps.places.PlacesServiceStatus.OK) {
                     setRestaurants(results);
                 } else {
-                    console.error('Places service failed:', status);
                     setRestaurants([]);
                 }
                 setLoadingFood(false);
             });
             
         } catch (error) {
-            console.error('Error finding food:', error);
             setLoadingFood(false);
         }
     };
     
     return (
-        <div style={{ height: '400px', width: '100%' }}>
-            <APIProvider apiKey={apiKey}>
+        <div style={{ height: '100%', width: '100%' }}>
+            <APIProvider apiKey={apiKey} libraries={['places']}>
                 <Map
-                    defaultCenter={paloAlto} // default center of map
+                    defaultCenter={paloAlto}
                     defaultZoom={10}
                     mapId="tesla-trip-planner"
+                    style={{ width: '100%', height: '100%' }}
                 >
-                    {/* render all markers */}
                     {superchargers.map((supercharger) => (
                         <AdvancedMarker
-                            key={supercharger.id} // unique key from object
-                            position={supercharger.position} // marker position used by object
-                            onClick={() => setSelectedMarker(supercharger)} // set selected marker on click using useState
+                            key={supercharger.id}
+                            position={supercharger.position}
+                            onClick={() => {
+                                setSelectedMarker(supercharger);
+                                setRestaurants([]);
+                            }}
                         />
                     ))}
 
-                    {/* info pop up */}
                     {selectedMarker && (
                         <InfoWindow
                             position={selectedMarker.position}
@@ -183,7 +195,6 @@ const MapComponent = () => {
                                     <strong>Status:</strong> <span style={{ color: 'green' }}>Available</span>
                                 </p>
                                 
-                                {/* find food button below supercharger information */}
                                 <button 
                                     onClick={() => findNearbyFood(selectedMarker)}
                                     disabled={loadingFood}
@@ -200,7 +211,6 @@ const MapComponent = () => {
                                     {loadingFood ? 'Finding Food...' : '🍕 Find Food Nearby'}
                                 </button>
 
-                                {/* restaurant results */}
                                 {restaurants.length > 0 && (
                                     <div style={{ marginTop: '15px' }}>
                                         <h4 style={{ margin: '0 0 8px 0', color: '#333' }}>
