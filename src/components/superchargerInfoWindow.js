@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { InfoWindow } from '@vis.gl/react-google-maps';
 import RestaurantList from './restaurantList';
 import { fetchNearbyRestaurants } from '../services/placesAPI';
@@ -6,6 +6,11 @@ import { fetchNearbyRestaurants } from '../services/placesAPI';
 const SuperchargerInfoWindow = ({ supercharger, onClose }) => {
     const [restaurants, setRestaurants] = useState([]);
     const [loadingFood, setLoadingFood] = useState(false);
+
+    // Clear restaurants when supercharger changes
+    useEffect(() => {
+        setRestaurants([]);
+    }, [supercharger.id]);
 
     const handleFindFood = async () => {
         setLoadingFood(true);

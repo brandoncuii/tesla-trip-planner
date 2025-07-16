@@ -20,14 +20,14 @@ const RestaurantList = ({ restaurants, loading }) => {
             </h4>
             {restaurants.slice(0, 3).map((restaurant, index) => (
                 <div 
-                    key={index} 
+                    key={restaurant.id || index}
                     style={{ 
                         padding: '6px 0', 
                         borderBottom: '1px solid #eee',
                         fontSize: '14px'
                     }}
                 >
-                    <strong>{restaurant.name}</strong><br/>
+                    <strong>{restaurant.name || 'Unnamed Restaurant'}</strong><br/>
                     <span style={{ color: '#666' }}>
                         {restaurant.rating}⭐ • {restaurant.types?.[0] || 'Restaurant'}
                     </span>

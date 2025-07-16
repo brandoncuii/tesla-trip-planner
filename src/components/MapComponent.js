@@ -1,5 +1,4 @@
 // src/MapComponent.js
-// Simplified main map component
 
 import React, { useState } from 'react';
 import { APIProvider, Map, AdvancedMarker } from '@vis.gl/react-google-maps';
@@ -9,7 +8,7 @@ import { useSuperchargers } from '../hooks/useSuperchargers';
 const MapComponent = () => {
     const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
     const paloAlto = { lat: 37.4419, lng: -122.1430 };
-    
+
     const { superchargers, loading } = useSuperchargers();
     const [selectedMarker, setSelectedMarker] = useState(null);
 
@@ -23,11 +22,11 @@ const MapComponent = () => {
 
     if (loading) {
         return (
-            <div style={{ 
-                height: '100%', 
-                width: '100%', 
-                display: 'flex', 
-                alignItems: 'center', 
+            <div style={{
+                height: '100%',
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
                 justifyContent: 'center',
                 color: 'white'
             }}>
@@ -45,13 +44,28 @@ const MapComponent = () => {
                     mapId="tesla-trip-planner"
                     style={{ width: '100%', height: '100%' }}
                 >
-                    {superchargers.map((supercharger) => (
-                        <AdvancedMarker
-                            key={supercharger.id}
-                            position={supercharger.position}
-                            onClick={() => handleMarkerClick(supercharger)}
-                        />
-                    ))}
+                    {superchargers.length === 0 ? (
+                        <div style={{
+                            position: 'absolute',
+                            top: '10px',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            background: '#222',
+                            color: '#fff',
+                            padding: '8px 12px',
+                            borderRadius: '8px'
+                        }}>
+                            No Tesla Superchargers found in this area
+                        </div>
+                    ) : (
+                        superchargers.map((supercharger) => (
+                            <AdvancedMarker
+                                key={supercharger.id}
+                                position={supercharger.position}
+                                onClick={() => handleMarkerClick(supercharger)}
+                            />
+                        ))
+                    )}
 
                     {selectedMarker && (
                         <SuperchargerInfoWindow

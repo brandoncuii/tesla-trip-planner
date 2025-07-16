@@ -1,105 +1,120 @@
-export const loadGoogleMapsPlaces = () => {
-    return new Promise((resolve, reject) => {
-        if (window.google && window.google.maps && window.google.maps.places) {
-            resolve();
-            return;
-        }
-
-        if (window.google && window.google.maps) {
-            let attempts = 0;
-            const checkForPlaces = () => {
-                attempts++;
-                if (window.google.maps.places) {
-                    resolve();
-                } else if (attempts < 50) {
-                    setTimeout(checkForPlaces, 100);
-                } else {
-                    reject(new Error('Places API not available'));
-                }
-            };
-            checkForPlaces();
-        } else {
-            reject(new Error('Google Maps not loaded'));
-        }
-    });
-};
+const API_KEY = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
+const BASE_URL = 'https://places.googleapis.com/v1/places:searchNearby';
 
 export const fetchSuperchargers = async () => {
     try {
-        const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout after 10 seconds')), 10000)
-        );
-        
-        await Promise.race([loadGoogleMapsPlaces(), timeoutPromise]);
-        
-        const service = new window.google.maps.places.PlacesService(document.createElement('div'));
-        
-        return new Promise((resolve) => {
-            service.textSearch({
-                query: 'Tesla Supercharger',
-                location: new window.google.maps.LatLng(37.4419, -122.1430),
-                radius: 50000
-            }, (results, status) => {
-                if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-                    const superchargers = results.map((place, index) => {
-                        let name = place.name;
-                        if (!name || name === "Tesla Supercharger") {
-                            const location = place.vicinity || 
-                                           (place.formatted_address ? place.formatted_address.split(',')[0] : null) ||
-                                           "Unknown Location";
-                            name = `Tesla Supercharger - ${location}`;
-                        }
-                        
-                        return {
-                            id: place.place_id || index + 1,
-                            name: name,
-                            position: {
-                                lat: place.geometry.location.lat(),
-                                lng: place.geometry.location.lng()
-                            },
-                            stalls: 'Multiple',
-                            power: '250kW',
-                            status: place.business_status === 'OPERATIONAL' ? 'Available' : 'Check Status',
-                            rating: place.rating || 'N/A',
-                            address: place.formatted_address || 'Address not available'
-                        };
-                    });
-                    resolve(superchargers);
-                } else {
-                    resolve([]);
+        const response = await fetch(BASE_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Goog-Api-Key': API_KEY,
+                'X-Goog-FieldMask':
+                    'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.primaryTypeDisplayName'
+            },
+            body: JSON.stringify({
+                includedTypes: ['electric_vehicle_charging_station'],
+                maxResultCount: 20,
+                locationRestriction: {
+                    circle: {
+                        center: { latitude: 37.4419, longitude: -122.1430 },
+                        radius: 50000
+                    }
                 }
-            });
+            })
         });
+
+        if (!response.ok) {
+            console.error('API Response:', response.status, response.statusText);
+            throw new Error(`Google Places API error: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log('Raw API response:', data);
+        
+        if (!data.places || data.places.length === 0) {
+            console.warn('No EV stations found in this area.');
+            return [];
+        }
+
+        // Simplified filtering - only exclude obvious dealerships
+        const filteredPlaces = data.places.filter(place => {
+            const name = place.displayName?.text?.toLowerCase() || '';
+            
+            // Only exclude obvious car dealerships
+            const isCarDealership = 
+                name.includes('volvo') && name.includes('cars') ||
+                name.includes('bmw') && name.includes('dealership') ||
+                name.includes('mercedes') && name.includes('dealership') ||
+                name.includes('honda') && name.includes('dealership') ||
+                name.includes('toyota') && name.includes('dealership');
+            
+            return !isCarDealership;
+        });
+
+        console.log('Filtered places:', filteredPlaces.length);
+
+        return filteredPlaces.map((place) => ({
+            id: place.id,
+            name: place.displayName?.text || 'Unknown Charging Station',
+            position: {
+                lat: place.location.latitude,
+                lng: place.location.longitude
+            },
+            address: place.formattedAddress || 'Address not available',
+            stalls: 'Multiple',
+            power: '250kW',
+            status: 'Check Status',
+            rating: place.rating || 'N/A'
+        }));
     } catch (error) {
+        console.error('Error fetching superchargers:', error);
         return [];
     }
 };
 
 export const fetchNearbyRestaurants = async (supercharger) => {
     try {
-        await loadGoogleMapsPlaces();
-        
-        const service = new window.google.maps.places.PlacesService(document.createElement('div'));
-        
-        const request = {
-            location: new window.google.maps.LatLng(
-                supercharger.position.lat, 
-                supercharger.position.lng
-            ),
-            radius: 500,
-            type: 'restaurant'
-        };
-        
-        return new Promise((resolve) => {
-            service.nearbySearch(request, (results, status) => {
-                if (status === window.google.maps.places.PlacesServiceStatus.OK) {
-                    resolve(results);
-                } else {
-                    resolve([]);
+        const response = await fetch(BASE_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Goog-Api-Key': API_KEY,
+                'X-Goog-FieldMask':
+                    'places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.types'
+            },
+            body: JSON.stringify({
+                includedTypes: ['restaurant'],
+                maxResultCount: 10,
+                locationRestriction: {
+                    circle: {
+                        center: { 
+                            latitude: supercharger.position.lat, 
+                            longitude: supercharger.position.lng 
+                        },
+                        radius: 500
+                    }
                 }
-            });
+            })
         });
+
+        if (!response.ok) {
+            throw new Error(`Google Places API error: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        if (!data.places || data.places.length === 0) {
+            console.warn('No restaurants found near this location.');
+            return [];
+        }
+
+        return data.places.map((place) => ({
+            name: place.displayName?.text || 'Unknown Restaurant',
+            rating: place.rating || 'N/A',
+            types: place.types || ['restaurant'],
+            address: place.formattedAddress || 'Address not available'
+        }));
     } catch (error) {
+        console.error('Error fetching nearby restaurants:', error);
         return [];
     }
 };
