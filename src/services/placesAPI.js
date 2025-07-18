@@ -10,7 +10,6 @@ export const fetchSuperchargersFromFile = async () => {
         
         console.log('📁 Total sites loaded:', allSites.length);
         
-        // Filter for California and open sites
         const californiaSites = allSites.filter(site => 
             site.address?.state === 'CA' && site.status === 'OPEN'
         );

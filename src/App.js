@@ -1,34 +1,29 @@
-import './App.css';
+import React from 'react';
+import { APIProvider } from '@vis.gl/react-google-maps';
 import MapComponent from './components/MapComponent';
+import './App.css';
 
 const App = () => {
   return (
-    <div className="App" style={{ 
-      height: '100vh', 
-      display: 'flex', 
-      flexDirection: 'column',
-      backgroundColor: '#282c34'  // Add dark background
-    }}>
-      <header style={{ 
-        padding: '10px 20px', 
-        backgroundColor: '#f5f5f5', 
-        borderBottom: '1px solid #ddd',
-        flexShrink: 0
-      }}>
-        <h1 style={{ margin: '0 0 5px 0', fontSize: '22px', color: '#333' }}>California Tesla Superchargers Information and Planning</h1>
-        <p style={{ margin: '2px 0', fontSize: '13px', color: '#666' }}>Created to plan road trips around California • Built by Brandon Cui</p>
-      </header>
-      <main style={{ 
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column'
-      }}>
-        <h2 style={{ margin: '10px 20px', fontSize: '18px', color: 'white' }}>Map View</h2>
-        <div style={{ flex: 1, height: '100%' }}>
-          <MapComponent />
-        </div>
-      </main>
-    </div>
+    <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
+      <div className="App">
+        <header style={{ 
+          textAlign: 'center', 
+          padding: '20px',
+          backgroundColor: '#f5f5f5',
+          borderBottom: '1px solid #ddd'
+        }}>
+          <h1 style={{ margin: 0, color: '#333' }}>
+            Tesla Supercharger Information and Planning
+          </h1>
+          <p style={{ margin: '5px 0 0 0', color: '#666' }}>
+            Created to plan your road trip with supercharger stops and food • Created by Brandon Cui
+          </p>
+        </header>
+        
+        <MapComponent />
+      </div>
+    </APIProvider>
   );
 }
 
