@@ -34,7 +34,7 @@ export const fetchSuperchargersFromFile = async () => {
     }
 };
 
-export const fetchNearbyRestaurants = async (supercharger) => {
+export const fetchNearbyRestaurants = async (supercharger, radius = 500) => {
     try {
         const response = await fetch(BASE_URL, {
             method: 'POST',
@@ -53,7 +53,7 @@ export const fetchNearbyRestaurants = async (supercharger) => {
                             latitude: supercharger.position.lat, 
                             longitude: supercharger.position.lng 
                         },
-                        radius: 500
+                        radius: radius
                     }
                 }
             })
@@ -65,7 +65,7 @@ export const fetchNearbyRestaurants = async (supercharger) => {
 
         const data = await response.json();
         if (!data.places || data.places.length === 0) {
-            console.warn('No restaurants found near this location.');
+            console.warn(`No restaurants found within ${radius}m of this location.`);
             return [];
         }
 
