@@ -43,18 +43,19 @@ Created by **Brandon Cui** | [LinkedIn](https://linkedin.com/in/brandoncui)
 - **Restaurants**: Google Places API (real-time data, reviews, ratings)
 
 ### **Component Structure**
-src/
-├── components/
-│   ├── MapComponent.js           # Main map with supercharger markers
-│   ├── FoodPreferencesToolbar.js # Filter controls for food & distance
-│   ├── SuperchargerInfoWindow.js # Popup with station details & restaurant finder
-│   └── RestaurantList.js         # Restaurant results display
-├── hooks/
-│   └── useSuperchargers.js       # Custom hook for loading charging stations
-├── services/
-│   └── placesAPI.js              # API functions for restaurants & charging data
-└── public/
-└── superchargers.json        # Local database of Tesla Superchargers
+    ```src/
+    ├── components/
+    │   ├── MapComponent.js           # Main map with supercharger markers
+    │   ├── FoodPreferencesToolbar.js # Filter controls for food & distance
+    │   ├── SuperchargerInfoWindow.js # Popup with station details & restaurant finder
+    │   └── RestaurantList.js         # Restaurant results display
+    ├── hooks/
+    │   └── useSuperchargers.js       # Custom hook for loading charging stations
+    ├── services/
+    │   └── placesAPI.js              # API functions for restaurants & charging data
+    └── public/
+    └── superchargers.json        # Local database of Tesla Superchargers
+    ```
 
 ## Getting Started
 
