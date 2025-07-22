@@ -25,7 +25,7 @@ Created by **Brandon Cui** | [LinkedIn](https://linkedin.com/in/brandoncui)
 - **Automatic filtering** - No need to re-select filters for each station
 - **Smart status indicators** showing current filter settings
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 - **Frontend**: React.js, JavaScript, HTML/CSS
 - **Maps**: Google Maps API with custom markers and info windows
@@ -69,12 +69,10 @@ src/
     ```bash
     git clone https://github.com/brandoncui/tesla-trip-planner.git
     cd tesla-trip-planner
-    `
 
 2. **Install dependencies**
     ```bash
     npm install
-    `
 
 3. **Set up environment variables** Create a .env file in the root directory:
     REACT_APP_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
@@ -82,7 +80,6 @@ src/
 4. **Start the development server**
     ```bash
     npm start
-    `
 
 5. **Open your browser**
    
@@ -134,7 +131,7 @@ src/
 - **Problem**: Most EV apps don't consider food during charging stops
 - **Solution**: Walking distance-based restaurant recommendations with smart filtering
 
-## 🚧 Future Enhancements
+## Future Enhancements
 
 - [ ] **Multi-state filtering**
 - [ ] **Route planning** between multiple charging stations
