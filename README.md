@@ -39,9 +39,8 @@ Created by **Brandon Cui** | [LinkedIn](https://linkedin.com/in/brandoncui)
 ## Architecture
 
 ### **Hybrid Data Strategy**
-- **Charging Stations**: Local JSON file from supercharge.info (no API limits, complete coverage)
+- **Charging Stations**: Local JSON file from supercharge.info
 - **Restaurants**: Google Places API (real-time data, reviews, ratings)
-- **Smart combination** eliminates rate limiting while maintaining data freshness
 
 ### **Component Structure**
 src/
@@ -139,12 +138,5 @@ src/
 - [ ] **Real-time charging station availability**
 - [ ] **User reviews** and favorite stations
 - [ ] **Mobile app** version
-
-## Acknowledgments
-
-- **Supercharge.info** for providing comprehensive Tesla Supercharger database
-- **Google Maps Platform** for mapping and places data
-- **Tesla community** for inspiration and feedback
-- **React team** for the excellent framework
 
 ---
